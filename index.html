@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Эко-Нан — пекарня</title>
+  <meta name="description" content="Эко-Нан — свежий хлеб и пирожные. Онлайн-меню, корзина и заявка в Telegram." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="image.png">
+
+  <style>
+    :root{
+      --bg:#fafafa;
+      --card:#ffffff;
+      --text:#1f2937; /* gray-800 */
+      --muted:#6b7280; /* gray-500 */
+      --brand:#3cae36; /* зелёный из логотипа */
+      --brand-dark:#2a8b26;
+      --accent:#b37b47; /* тёплый хлебный */
+      --ring: rgba(60,174,54,0.35);
+      --shadow: 0 10px 20px rgba(0,0,0,.06), 0 6px 6px rgba(0,0,0,.04);
+      --radius: 18px;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--text);background:var(--bg)}
+    a{color:inherit;text-decoration:none}
+    img{max-width:100%;display:block}
+    .container{width:min(1200px,92%);margin-inline:auto}
+    /* Header */
+    header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.8);backdrop-filter:saturate(180%) blur(10px);border-bottom:1px solid #eee}
+    .nav{display:flex;align-items:center;justify-content:space-between;padding:.8rem 0}
+    .nav-left{display:flex;gap:1rem;align-items:center}
+    .logo{display:flex;align-items:center;gap:.6rem;font-weight:700}
+    .logo img{width:36px;height:36px;border-radius:50%}
+    .nav-links a{padding:.5rem .9rem;border-radius:12px;transition:.2s}
+    .nav-links a:hover{background:#f3f4f6}
+    .actions{display:flex;gap:.6rem;align-items:center}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;padding:.7rem 1rem;border-radius:12px;border:1px solid #e5e7eb;background:var(--card);box-shadow:var(--shadow);cursor:pointer;transition:.2s}
+    .btn:hover{transform:translateY(-1px)}
+    .btn-primary{background:var(--brand);color:#fff;border-color:var(--brand)}
+    .btn-primary:hover{background:var(--brand-dark)}
+    select.lang{padding:.6rem .9rem;border-radius:12px;border:1px solid #e5e7eb;background:var(--card)}
+
+    /* Hero */
+    .hero{position:relative;isolation:isolate}
+    .hero .wrap{display:grid;grid-template-columns:1.1fr .9fr;gap:2rem;align-items:center;padding:3rem 0}
+    .pill{display:inline-flex;align-items:center;gap:.5rem;padding:.35rem .7rem;border-radius:999px;background:#ecfdf5;color:#065f46;font-weight:600;font-size:.85rem}
+    .headline{font-size:clamp(2rem,4.5vw,3.2rem);line-height:1.1;margin:.6rem 0 1rem}
+    .sub{color:var(--muted);font-size:1.05rem}
+    .hero-card{background:radial-gradient(1200px 400px at -10% -10%, #e6f7e5 0, transparent 60%), var(--card);padding:2rem;border-radius:var(--radius);box-shadow:var(--shadow)}
+    .hero img{border-radius:var(--radius)}
+
+    /* Section */
+    section{padding:3rem 0}
+    .section-title{display:flex;align-items:end;justify-content:space-between;margin-bottom:1.4rem}
+    .section-title h2{font-size:clamp(1.4rem,2.8vw,2rem);margin:0}
+    .muted{color:var(--muted)}
+
+    /* Menu grid */
+    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.1rem}
+    @media (max-width: 1024px){.hero .wrap{grid-template-columns:1fr}.grid{grid-template-columns:repeat(2,1fr)}}
+    @media (max-width: 560px){.grid{grid-template-columns:1fr}}
+    .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column}
+    .card-body{padding:1rem;display:flex;flex-direction:column;gap:.5rem}
+    .title{font-weight:600}
+    .price{font-weight:700;color:var(--accent)}
+    .qty{display:flex;align-items:center;gap:.5rem}
+    .qty button{width:34px;height:34px;border-radius:10px;border:1px solid #e5e7eb;background:#fff;cursor:pointer}
+
+    /* Cart drawer */
+    .cart-btn{position:relative}
+    .badge{position:absolute;top:-6px;right:-6px;background:var(--brand);color:#fff;border-radius:999px;padding:.1rem .45rem;font-size:.75rem;font-weight:700}
+    .drawer{position:fixed;inset:0;display:none}
+    .drawer[aria-open="true"]{display:block}
+    .drawer .overlay{position:absolute;inset:0;background:rgba(0,0,0,.35)}
+    .drawer .panel{position:absolute;top:0;right:0;height:100%;width:min(520px,92%);background:#fff;box-shadow: -8px 0 24px rgba(0,0,0,.12);display:flex;flex-direction:column}
+    .panel header{position:sticky;top:0;border-bottom:1px solid #eee;background:#fff}
+    .panel .content{padding:1rem;flex:1;overflow:auto}
+    .cart-item{display:grid;grid-template-columns:64px 1fr auto;gap:.8rem;align-items:center;padding:.6rem 0;border-bottom:1px dashed #eee}
+    .cart-item img{width:64px;height:64px;object-fit:cover;border-radius:12px}
+    .cart-item .name{font-weight:600}
+    .panel footer{padding:1rem;border-top:1px solid #eee}
+
+    /* Checkout section */
+    .form{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+    .form .full{grid-column:1/-1}
+    .field{display:flex;flex-direction:column;gap:.4rem}
+    .input, .select, textarea{padding:.75rem .9rem;border:1px solid #e5e7eb;border-radius:12px;background:#fff}
+    textarea{min-height:100px}
+    .pay{display:flex;gap:.7rem;flex-wrap:wrap}
+    .chip{display:flex;align-items:center;gap:.45rem;border:1px solid #e5e7eb;border-radius:999px;padding:.5rem .8rem;background:#fff;cursor:pointer}
+    .chip input{accent-color:var(--brand)}
+
+    /* Footer */
+    footer{padding:2rem 0;border-top:1px solid #eee;color:var(--muted)}
+
+    /* Smooth reveal */
+    .reveal{opacity:0;transform:translateY(10px);transition:.5s}
+    .reveal.show{opacity:1;transform:none}
+
+
+
+
+    
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="container nav">
+      <div class="nav-left">
+        <a href="#home" class="logo">
+          <img src="ChatGPT Image 15 авг. 2025 г., 20_07_36.png" alt="Эко-Нан логотип" onerror="this.style.display='none'" />
+          <span style="color: #2a8b26;">Эко-Нан</span>
+        </a>
+        <nav class="nav-links">
+          <a href="#home" data-i18n="nav.home">Главная</a>
+          <a href="#menu" data-i18n="nav.menu">Меню</a>
+          <a href="#contacts" data-i18n="nav.contacts">Контакты</a>
+        </nav>
+      </div>
+      <div class="actions">
+        <select class="lang" id="lang">
+          <option value="ru">RU</option>
+          <option value="ky">KG</option>
+          <option value="en">EN</option>
+        </select>
+        <button class="btn cart-btn" id="openCart" aria-label="Cart">
+          🧺 <span data-i18n="ui.cart">Корзина</span>
+          <span class="badge" id="cartCount">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section id="home" class="hero">
+    <div class="container wrap">
+      <div class="hero-card reveal">
+        <span class="pill" data-i18n="hero.pill">Каждый день — свежая выпечка</span>
+        <h1 class="headline" data-i18n="hero.title">Натуральный хлеб и пирожные из Эко‑Нан</h1>
+        <p class="sub" data-i18n="hero.text">Выбирайте любимую выпечку онлайн — оформляйте заказ и получите подтверждение в Telegram.</p>
+        <div style="margin-top:1rem;display:flex;gap:.6rem;flex-wrap:wrap">
+          <a href="#menu" class="btn btn-primary" data-i18n="hero.cta">Смотреть меню</a>
+          <a href="#contacts" class="btn" data-i18n="hero.cta2">Наши контакты</a>
+        </div>
+      </div>
+      <div class="reveal">
+        <img src="https://images.unsplash.com/photo-1549931319-a545dcf3bc73?q=80&w=1400&auto=format&fit=crop" alt="Свежий хлеб">
+      </div>
+    </div>
+  </section>
+
+  <!-- Menu -->
+  <section id="menu">
+    <div class="container">
+      <div class="section-title">
+        <h2 data-i18n="menu.title">Меню</h2>
+        <span class="muted" data-i18n="menu.subtitle">8 популярных позиций — фото временные, заменим позже</span>
+      </div>
+      <div class="grid" id="menuGrid"></div>
+    </div>
+  </section>
+
+  <!-- Checkout -->
+  <section id="checkout">
+    <div class="container">
+      <div class="section-title">
+        <h2 data-i18n="checkout.title">Оформление заказа</h2>
+        <span class="muted" data-i18n="checkout.subtitle">Заполните контактные данные и способ оплаты</span>
+      </div>
+      <form id="orderForm" class="form">
+        <div class="field">
+          <label for="name" data-i18n="form.name">Ваше имя</label>
+          <input id="name" class="input" required placeholder="Асан" />
+        </div>
+        <div class="field">
+          <label for="phone" data-i18n="form.phone">Телефон</label>
+          <input id="phone" class="input" required placeholder="+996 773 200 015" />
+        </div>
+        <div class="field full">
+          <label for="address" data-i18n="form.address">Адрес (доставка) или отметьте самовывоз</label>
+          <input id="address" class="input" placeholder="Бакаева 140" />
+        </div>
+        <div class="field full">
+          <span class="muted" data-i18n="form.paytitle">Способ оплаты</span>
+          <div class="pay">
+            <label class="chip"><input type="radio" name="pay" value="MBank" checked/> MBank</label>
+            <label class="chip"><input type="radio" name="pay" value="Optima"/> Optima</label>
+            <label class="chip"><input type="radio" name="pay" value="Cash"/> Наличные при получении</label>
+          </div>
+        </div>
+        <div class="field full">
+          <label for="comment" data-i18n="form.comment">Комментарий</label>
+          <textarea id="comment" placeholder="Например: без сахара, доставка после 18:00"></textarea>
+        </div>
+        <div class="field full">
+          <button type="submit" class="btn btn-primary" style="width:100%" data-i18n="form.submit">Отправить заявку в Telegram</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- Contacts -->
+  <section id="contacts">
+    <div class="container">
+      <div class="section-title">
+        <h2 data-i18n="contacts.title">Контакты</h2>
+        <span class="muted">Бакаева 140 • +996773200015 • Instagram: <a href="https://instagram.com/eco__nan" target="_blank">eco__nan</a></span>
+      </div>
+      <div style="border-radius:18px;overflow:hidden;box-shadow:var(--shadow)">
+        <iframe title="map" src="https://www.google.com/maps?q=Bishkek%20Bakaeva%20140&output=embed" width="100%" height="380" style="border:0" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">© <span id="year"></span> Эко‑Нан. <span class="muted" data-i18n="footer.txt">Свежая выпечка каждый день.</span></div>
+  </footer>
+
+  <!-- Cart Drawer -->
+  <div class="drawer" id="drawer" aria-open="false" aria-hidden="true">
+    <div class="overlay" id="closeCart"></div>
+    <div class="panel">
+      <header class="nav">
+        <div style="font-weight:700">🧺 <span data-i18n="ui.cart">Корзина</span></div>
+        <button class="btn" id="xClose">✕</button>
+      </header>
+      <div class="content" id="cartItems"></div>
+      <footer>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem">
+          <div class="muted" data-i18n="cart.total">Итого</div>
+          <div style="font-weight:800" id="cartTotal">0 KGS</div>
+        </div>
+        <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+          <a href="#checkout" class="btn btn-primary" id="toCheckout" data-i18n="cart.checkout">Перейти к оформлению</a>
+          <button class="btn" id="clearCart" data-i18n="cart.clear">Очистить</button>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    // ===== Helpers
+    const $ = (s, p=document) => p.querySelector(s);
+    const $$ = (s, p=document) => p.querySelectorAll(s);
+    const fmt = (n) => new Intl.NumberFormat('ru-KG', {style:'currency', currency:'KGS', maximumFractionDigits:0}).format(n);
+
+    // ===== I18N
+    const i18n = {
+      ru: {
+        'nav.home':'Главная','nav.menu':'Меню','nav.contacts':'Контакты',
+        'ui.cart':'Корзина',
+        'hero.pill':'Каждый день — свежая выпечка',
+        'hero.title':'Натуральный хлеб и пирожные из Эко‑Нан',
+        'hero.text':'Выбирайте любимую выпечку онлайн — оформляйте заказ и получите подтверждение в Telegram.',
+        'hero.cta':'Смотреть меню','hero.cta2':'Наши контакты',
+        'menu.title':'Меню','menu.subtitle':'8 популярных позиций — фото временные, заменим позже',
+        'checkout.title':'Оформление заказа','checkout.subtitle':'Заполните контактные данные и способ оплаты',
+        'form.name':'Ваше имя','form.phone':'Телефон','form.address':'Адрес (доставка) или отметьте самовывоз','form.paytitle':'Способ оплаты','form.comment':'Комментарий','form.submit':'Отправить заявку в Telegram',
+        'contacts.title':'Контакты','footer.txt':'Свежая выпечка каждый день.',
+        'cart.total':'Итого','cart.checkout':'Перейти к оформлению','cart.clear':'Очистить',
+      },
+      ky: {
+        'nav.home':'Башкы бет','nav.menu':'Меню','nav.contacts':'Байланыш',
+        'ui.cart':'Себет',
+        'hero.pill':'Күн сайын — жаңы бышкан нан',
+        'hero.title':'Эко‑Нандан табигый нан жана токочтор',
+        'hero.text':'Сүйгөн даамыңды онлайн танда — заказ Telegram’га жөнөтүлөт.',
+        'hero.cta':'Менюну көрүү','hero.cta2':'Байланыш',
+        'menu.title':'Меню','menu.subtitle':'8 позиция — сүрөттөр убактылуу, кийин алмаштырабыз',
+        'checkout.title':'Заказды оформлениялоо','checkout.subtitle':'Байланыш жана төлөм ыкмасын толтуруңуз',
+        'form.name':'Атыңыз','form.phone':'Телефон','form.address':'Дарек (жеткирүү) же өзүң алып кетүү','form.paytitle':'Төлөм ыкмасы','form.comment':'Комментарий','form.submit':'Заказды Telegram’га жөнөтүү',
+        'contacts.title':'Байланыш','footer.txt':'Күн сайын жаңы нан.',
+        'cart.total':'Жалпы','cart.checkout':'Оформлениялоого өтүү','cart.clear':'Тазалоо',
+      },
+      en: {
+        'nav.home':'Home','nav.menu':'Menu','nav.contacts':'Contacts',
+        'ui.cart':'Cart',
+        'hero.pill':'Freshly baked daily',
+        'hero.title':'Natural bread & pastries from Eco‑Nan',
+        'hero.text':'Choose your favorites online — submit an order and get a Telegram confirmation.',
+        'hero.cta':'View menu','hero.cta2':'Contacts',
+        'menu.title':'Menu','menu.subtitle':'8 popular items — photos are placeholders',
+        'checkout.title':'Checkout','checkout.subtitle':'Fill in your contacts and payment method',
+        'form.name':'Your name','form.phone':'Phone','form.address':'Address (delivery) or pickup','form.paytitle':'Payment method','form.comment':'Comment','form.submit':'Send order to Telegram',
+        'contacts.title':'Contacts','footer.txt':'Fresh bakes every day.',
+        'cart.total':'Total','cart.checkout':'Go to checkout','cart.clear':'Clear',
+      }
+    };
+
+    function setLang(lang){
+      const dict = i18n[lang] || i18n.ru;
+      for (const el of $$('[data-i18n]')){
+        const key = el.getAttribute('data-i18n');
+        if (dict[key]) el.textContent = dict[key];
+      }
+      document.documentElement.lang = lang;
+    }
+
+    $('#lang').addEventListener('change', e=> setLang(e.target.value));
+
+    // ===== Products (names by language)
+    const P = [
+      {id:1, name:{ru:'Буханка классическая', ky:'Классикалык нан', en:'Classic loaf'}, price:55, img:'https://repost.uz/storage/uploads/7245-1636979692-nadira-post-material.jpeg'},
+      {id:2, name:{ru:'Багет хрустящий', ky:'Хрусттагы багет', en:'Crispy baguette'}, price:70, img:'https://images.unsplash.com/photo-1541167760496-1628856ab772?q=80&w=1200&auto=format&fit=crop'},
+      {id:3, name:{ru:'Хлеб цельнозерновой', ky:'Толук дан нан', en:'Wholegrain bread'}, price:85, img:'https://images.unsplash.com/photo-1608198093002-ad4e005484ec?q=80&w=1200&auto=format&fit=crop'},
+      {id:4, name:{ru:'Самса домашняя', ky:'Үй самсасы', en:'Homemade samsa'}, price:90, img:'https://yarhleb.org/upload/medialibrary/dee/deed45bac275777f436307bfbd506c60.jpg'},
+      {id:5, name:{ru:'Круассан сливочный', ky:'Майлуу круассан', en:'Butter croissant'}, price:75, img:'https://img.iamcook.ru/2024/upl/recipes/cat/u-4ef3b76da83d15005b2eba264c6c4f55.JPG'},
+      {id:6, name:{ru:'Пирожное медовое', ky:'Бал пирожное', en:'Honey pastry'}, price:95, img:'https://vkusnoff.com/img/recepty/3640/big.webp'},
+      {id:7, name:{ru:'Чак-чак', ky:'Чак-чак', en:'Chak-chak'}, price:110, img:'https://ic.pics.livejournal.com/miss_hohotyn007/73968878/5285014/5285014_600.jpg'},
+      {id:8, name:{ru:'Наполеон', ky:'Наполеон', en:'Napoleon cake'}, price:120, img:'https://www.chefmarket.ru/blog/wp-content/uploads/2019/09/delicious-cupcakes--e1567691422467.jpg'}
+    ];
+
+    // ===== Render menu
+    const grid = $('#menuGrid');
+    function renderMenu(){
+      grid.innerHTML = '';
+      const lang = document.documentElement.lang || 'ru';
+      for(const p of P){
+        const card = document.createElement('div');
+        card.className = 'card reveal';
+        card.innerHTML = `
+          <img src="${p.img}" alt="${p.name[lang]}" loading="lazy"/>
+          <div class="card-body">
+            <div class="title">${p.name[lang]}</div>
+            <div class="muted">450 г</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:.4rem">
+              <div class="price">${fmt(p.price)}</div>
+              <button class="btn btn-primary" data-add="${p.id}">+ <span data-i18n="ui.add">В корзину</span></button>
+            </div>
+          </div>`;
+        grid.appendChild(card);
+      }
+    }
+
+    // Add i18n label for add button
+    i18n.ru['ui.add']='В корзину';
+    i18n.ky['ui.add']='Себетке';
+    i18n.en['ui.add']='Add to cart';
+
+    // ===== Cart logic
+    let cart = [];
+    const updateBadge = ()=> $('#cartCount').textContent = cart.reduce((s,i)=>s+i.qty,0);
+    const openDrawer = ()=> {const d=$('#drawer'); d.setAttribute('aria-open','true'); d.removeAttribute('aria-hidden');}
+    const closeDrawer = ()=> {const d=$('#drawer'); d.setAttribute('aria-open','false'); d.setAttribute('aria-hidden','true');}
+
+    function addToCart(id){
+      const prod = P.find(p=>p.id==id); if(!prod) return;
+      const it = cart.find(i=>i.id==id);
+      if(it) it.qty++; else cart.push({id:prod.id, qty:1});
+      persist(); renderCart();
+    }
+    function changeQty(id,delta){
+      const it = cart.find(i=>i.id==id); if(!it) return;
+      it.qty += delta; if(it.qty<=0) cart = cart.filter(i=>i.id!=id);
+      persist(); renderCart();
+    }
+    function clearCart(){ cart=[]; persist(); renderCart(); }
+    function persist(){ localStorage.setItem('eco_cart', JSON.stringify(cart)); }
+    function restore(){ try{ cart = JSON.parse(localStorage.getItem('eco_cart')||'[]') }catch{ cart=[] } }
+
+    function renderCart(){
+      updateBadge();
+      const lang = document.documentElement.lang || 'ru';
+      const box = $('#cartItems');
+      if(cart.length===0){ box.innerHTML = `<p class="muted">${ lang==='en' ? 'Your cart is empty' : (lang==='ky'?'Себет бош':'Корзина пуста') }</p>`; $('#cartTotal').textContent = fmt(0); return }
+      let total = 0;
+      box.innerHTML = cart.map(it=>{
+        const p = P.find(x=>x.id==it.id); const sum = p.price*it.qty; total+=sum;
+        return `<div class="cart-item">
+          <img src="${p.img}" alt="${p.name[lang]}">
+          <div>
+            <div class="name">${p.name[lang]}</div>
+            <div class="muted">${fmt(p.price)} × ${it.qty} = ${fmt(sum)}</div>
+            <div class="qty" style="margin-top:.4rem">
+              <button data-dec="${p.id}">−</button>
+              <span>${it.qty}</span>
+              <button data-inc="${p.id}">+</button>
+              <button data-del="${p.id}" style="margin-left:.5rem">🗑</button>
+            </div>
+          </div>
+          <div style="font-weight:700">${fmt(sum)}</div>
+        </div>`
+      }).join('');
+      $('#cartTotal').textContent = fmt(total);
+    }
+
+    // ===== Checkout — send to Telegram
+    // IMPORTANT: configure one of the options below
+    const TG_BOT_TOKEN = '7850919007:AAEomvefxyhlD8jOFgqDRuoyTYZTVoOGVew';
+    const TG_CHAT_ID = '1043911649'; // e.g. 123456789
+    const PROXY_URL = ''; // optional: your https proxy endpoint (Cloudflare Worker / Netlify Function)
+
+    async function sendToTelegram(text){
+      // Prefer proxy (handles CORS). If not set, try direct GET (may be blocked by CORS on some hosts)
+      if(PROXY_URL){
+        const r = await fetch(PROXY_URL, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text})});
+        if(!r.ok) throw new Error('Proxy error');
+        return true;
+      } else {
+        const url = `https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage?chat_id=${encodeURIComponent(TG_CHAT_ID)}&parse_mode=HTML&text=${encodeURIComponent(text)}`;
+        const r = await fetch(url, {method:'GET'});
+        if(!r.ok) throw new Error('Telegram error');
+        return true;
+      }
+    }
+
+    $('#orderForm').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      if(cart.length===0){ alert('Сначала добавьте товары в корзину'); return }
+      const lang = document.documentElement.lang || 'ru';
+      const name = $('#name').value.trim();
+      const phone = $('#phone').value.trim();
+      const address = $('#address').value.trim();
+      const comment = $('#comment').value.trim();
+      const pay = document.querySelector('input[name="pay"]:checked')?.value || 'MBank';
+      // Build message
+      let total = 0; const lines = cart.map(it=>{ const p=P.find(x=>x.id==it.id); const sum=p.price*it.qty; total+=sum; return `• ${p.name[lang]} — ${it.qty} × ${p.price} = ${sum} KGS`;});
+      const msg = `<b>Новый заказ с сайта Эко‑Нан</b>%0A%0A`+
+        lines.join('%0A')+`%0A<b>Итого:</b> ${total} KGS%0A%0A`+
+        `<b>Имя:</b> ${name}%0A<b>Телефон:</b> ${phone}%0A<b>Оплата:</b> ${pay}%0A<b>Адрес/самовывоз:</b> ${address||'-'}%0A<b>Комментарий:</b> ${comment||'-'}%0A`+
+        `%0AИсточник: ${location.href}`;
+
+      try{
+        await sendToTelegram(decodeURIComponent(msg));
+        alert(lang==='en' ? 'Order sent to Telegram! We will contact you.' : (lang==='ky'?'Заказ Telegram’га жөнөтүлдү! Байланышабыз.':'Заявка отправлена в Telegram! Мы свяжемся с вами.'));
+        clearCart(); e.target.reset();
+      }catch(err){
+        console.error(err);
+        alert('Не удалось отправить в Telegram. Проверьте настройки токена/прокси.');
+      }
+    });
+
+    // ===== Events
+    document.addEventListener('click', (e)=>{
+      const add = e.target.closest('[data-add]');
+      if(add){ addToCart(+add.getAttribute('data-add')); openDrawer(); }
+      const inc = e.target.closest('[data-inc]'); if(inc) changeQty(+inc.getAttribute('data-inc'), +1);
+      const dec = e.target.closest('[data-dec]'); if(dec) changeQty(+dec.getAttribute('data-dec'), -1);
+      const del = e.target.closest('[data-del]'); if(del){ changeQty(+del.getAttribute('data-del'), -9999); }
+    });
+
+    $('#openCart').addEventListener('click', openDrawer);
+    $('#closeCart').addEventListener('click', closeDrawer);
+    $('#xClose').addEventListener('click', closeDrawer);
+    $('#clearCart').addEventListener('click', clearCart);
+    $('#toCheckout').addEventListener('click', closeDrawer);
+
+    // ===== Reveal on scroll
+    const io = new IntersectionObserver((entries)=> entries.forEach(en=>{ if(en.isIntersecting) en.target.classList.add('show') }), {threshold:.12});
+    function applyReveal(){ $$('.reveal').forEach(el=> io.observe(el)); }
+
+    // ===== Init
+    (function init(){
+      document.getElementById('year').textContent = new Date().getFullYear();
+      setLang('ru');
+      renderMenu();
+      restore();
+      renderCart();
+      applyReveal();
+    })();
+  </script>
+
+  <!--
+  ============================================================
+  BACKEND-МИНИМУМ ДЛЯ TELEGRAM (рекомендуется из‑за CORS)
+  ------------------------------------------------------------
+  Вариант 1: Cloudflare Worker
+  - Создайте воркер и вставьте код ниже, заменив BOT_TOKEN и CHAT_ID.
+  - Укажите его адрес в переменной PROXY_URL (POST JSON: {text})
+
+  export default {
+    async fetch(request, env, ctx) {
+      if (request.method !== 'POST') return new Response('Only POST', {status:405});
+      const { text } = await request.json();
+      const BOT_TOKEN = 'PASTE_YOUR_BOT_TOKEN';
+      const CHAT_ID = 'PASTE_YOUR_CHAT_ID';
+      const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+      const tg = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({chat_id: CHAT_ID, text, parse_mode:'HTML'})});
+      return new Response(await tg.text(), {status: tg.status, headers:{'Access-Control-Allow-Origin':'*'}});
+    }
+  }
+
+  Вариант 2: Netlify Function (serverless)
+  exports.handler = async (event) => {
+    const { text } = JSON.parse(event.body || '{}');
+    const BOT_TOKEN = process.env.TG_BOT_TOKEN;
+    const CHAT_ID = process.env.TG_CHAT_ID;
+    const r = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({chat_id: CHAT_ID, text, parse_mode:'HTML'})});
+    return { statusCode: r.status, headers: {'Access-Control-Allow-Origin':'*'}, body: await r.text() };
+  }
+  ============================================================
+  -->
+</body>
+</html>
